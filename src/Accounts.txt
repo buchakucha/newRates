@@ -1,0 +1,2 @@
+buchakucha 1234 2000.0
+igas_top 4321 500.0
