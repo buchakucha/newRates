@@ -8,52 +8,67 @@ import java.util.Scanner;
 import java.util.ArrayList;
 
 public class Main {
-    public static void main(String[] argv) throws BadAnswerException, BadNumberException, BadMoneyException {
+    public static void main(String[] argv) {
         Scanner sc = new Scanner(System.in);
-        Dialog.greeting();
         ArrayList<Account> accounts = getAllAccounts();
-        Account currentAccount = signInAtAccount(sc, accounts);
-        Dialog.inform(currentAccount);
-        startGame(sc, accounts, currentAccount);
+        Dialog.greeting();
+        try {
+            Account currentAccount = signInAtAccount(sc, accounts);
+            accounts = addNewAccount(accounts, currentAccount);
+            Dialog.inform(currentAccount);
+            startGame(sc, currentAccount);
+        } catch (BadAnswerException | BadNumberException | BadMoneyException e) {
+            Utils.updateAccountInformation(accounts);
+            throw new RuntimeException(e);
+        }
+        Utils.updateAccountInformation(accounts);
     }
 
     private static void startGame(Scanner sc,
-                                  ArrayList<Account> accounts,
                                   Account currentAccount)
             throws BadMoneyException, BadNumberException, BadAnswerException {
         if (!currentAccount.isEnoughMoneyForMatch()) return;
         while (currentAccount.getMoney() != 0) {
-            float stakedMoney = 0;
-            while (!currentAccount.isCanParticipate()) {
-                stakedMoney = getPlacedBet(currentAccount, sc);
-            }
-            currentAccount.setCanParticipate(false);
-            System.out.println("В гонке участвуют:\n");
+            float stakedMoney = getPlacedBet(currentAccount, sc);
             Participant[] participants = getParticipants();
             float[] participantsCoefficients = getCoefficients(participants);
             Match.displayListOfParticipants(participants);
-            int choice = getChoiceOfPlayer(sc);
-            int winner = Match.getNumberOfWinner();
-            System.out.println("Победитель забега участник №" + (winner + 1) + ".\n");
-            addWonMoney(currentAccount, accounts, stakedMoney, participantsCoefficients, choice, winner);
-            System.out.println("У вас на счету " + currentAccount.getMoney() + " монет.\n");
-            if (!currentAccount.isEnoughMoneyForMatch()) {
-                System.out.println("Участвовать в ставках вы не можете:(\nСпасибо за игру, до свидания!");
-                return;
-            }
-            if (isGameNotContinue(sc)) {
-                Utils.rewriteFile(accounts);
-                return;
-            }
+            calculateWinnings(sc, currentAccount, stakedMoney, participantsCoefficients);
+            if (!canContinue(sc, currentAccount)) return;
         }
     }
 
-    private static Account signInAtAccount(Scanner sc, ArrayList<Account> accounts) throws BadAnswerException {
+    private static boolean canContinue(Scanner sc, Account currentAccount) throws BadAnswerException {
+        if (!currentAccount.isEnoughMoneyForMatch()) {
+            System.out.println("Участвовать в ставках вы не можете:(\nСпасибо за игру, до свидания!");
+            return false;
+        }
+        return isGameContinue(sc);
+    }
+
+    private static void calculateWinnings(Scanner sc,
+                                          Account currentAccount,
+                                          float stakedMoney,
+                                          float[] participantsCoefficients) throws BadNumberException {
+        int choice = getChoiceOfPlayer(sc);
+        int winner = Match.getNumberOfWinner();
+        System.out.println("Победитель забега участник №" + (winner + 1) + ".\n");
+        if (winner == choice - 1) {
+            System.out.println("Поздравляю!");
+            addWonMoney(currentAccount, stakedMoney, participantsCoefficients, winner);
+        } else {
+            System.out.println("К сожалению, ваша ставка не зашла:(");
+        }
+        System.out.println("У вас на счету " + currentAccount.getMoney() + " монет.\n");
+    }
+
+    private static Account signInAtAccount(Scanner sc,
+                                           ArrayList<Account> accounts) throws BadAnswerException {
         Account currentAccount;
         int answer = sc.nextInt();
-        if (answer == 1) {
+        if (answer == 1) { //пользователь уже есть
             currentAccount = getAuthorizedAccount(accounts, sc);
-        } else if (answer == 0) {
+        } else if (answer == 0) { //новый пользователь
             currentAccount = getRegisteredNewAccount(accounts, sc);
         } else {
             throw new BadAnswerException("Не могу понять ДА это или НЕТ...Попробуйте ещё раз.");
@@ -61,14 +76,16 @@ public class Main {
         return currentAccount;
     }
 
-    private static void addWonMoney(Account currentAccount, ArrayList<Account> accounts, float stakedMoney, float[] participantsCoefficients, int choice, int winner) {
+    private static void addWonMoney(Account currentAccount, //действие
+                                    float stakedMoney,
+                                    float[] participantsCoefficients,
+                                    int winner) {
         float winningMoney = Match.getCalculatedReward(
-                winner,
-                choice - 1,
                 stakedMoney,
-                participantsCoefficients
+                participantsCoefficients[winner]
         );
         currentAccount.addMoney(winningMoney);
+        System.out.println("Ваш выигрыш составил " + winningMoney + " монет");
     }
 
     private static int getChoiceOfPlayer(Scanner sc) throws BadNumberException {
@@ -80,7 +97,7 @@ public class Main {
         return choice;
     }
 
-    private static boolean isGameNotContinue(Scanner sc) throws BadAnswerException {
+    private static boolean isGameContinue(Scanner sc) throws BadAnswerException {
         System.out.println("Желаете продолжить? 1-да, 0-нет");
         int resume = sc.nextInt();
         if ((resume != 0) && (resume != 1)) {
@@ -88,14 +105,14 @@ public class Main {
         }
         if (resume == 0) {
             System.out.println("Спасибо за игру, до свидания!");
-            return true;
+            return false;
         }
-        return false;
+        return true;
     }
 
     private static float[] getCoefficients(Participant[] participants) {
-        float[] participantsCoefficients = new float[4];
-        for (int i = 0; i < 4; i++) {
+        float[] participantsCoefficients = new float[participants.length];
+        for (int i = 0; i < participants.length; i++) {
             participantsCoefficients[i] = participants[i].getCoefficient();
         }
         return participantsCoefficients;
@@ -106,22 +123,35 @@ public class Main {
         Participant donkeyParticipant = new Participant(new Donkey());
         Participant camelParticipant = new Participant(new Camel());
         Participant giraffeParticipant = new Participant(new Giraffe());
-        return new Participant[]{horseParticipant, donkeyParticipant, camelParticipant, giraffeParticipant};
+        return new Participant[]{
+                horseParticipant,
+                donkeyParticipant,
+                camelParticipant,
+                giraffeParticipant
+        };
     }
 
     private static float getPlacedBet(Account currentAccount, Scanner sc) throws BadMoneyException {
         float stakedMoney;
         System.out.println("Сколько монет ваша ставка?");
         stakedMoney = sc.nextFloat();
-        if (stakedMoney <= 0) throw new BadMoneyException("Ну нет уж, это так не работает...До свидания!");
-        currentAccount.placeBet(stakedMoney);
+        if (stakedMoney <= 0) {
+            throw new BadMoneyException("Ну нет уж, это так не работает...До свидания!");
+        }
+        float currentMoney = currentAccount.getMoney();
+        if (currentAccount.canPlaceBet(stakedMoney)) {
+            currentAccount.setMoney(currentMoney - stakedMoney);
+            System.out.println("Отлично! На вашем счету " + currentAccount.getMoney() + " монет");
+        } else {
+            throw new BadMoneyException("На вашем счету недостаточно средств. Введите сумму не более " + currentMoney);
+        }
         return stakedMoney;
     }
 
     private static Account getRegisteredNewAccount(ArrayList<Account> accounts, Scanner sc) {
-        Account currentAccount;
+        Account newAccount;
         String passwordInput;
-        String loginInput = "";
+        String loginInput = null;
         boolean newAcc = false;
         System.out.println("Придумайте логин:");
         while (!newAcc) {
@@ -135,9 +165,20 @@ public class Main {
         System.out.println("Придумайте пароль:");
         passwordInput = sc.next();
         Utils.addNewAccountAtFile(loginInput, passwordInput);
-        currentAccount = new Account(loginInput, passwordInput, 1000);
-        accounts.add(currentAccount);
-        return currentAccount;
+        newAccount = new Account(
+                loginInput,
+                passwordInput,
+                1000);
+        return newAccount;
+    }
+
+    private static ArrayList<Account> addNewAccount(ArrayList<Account> oldList,
+                                                    Account newAccount) {
+        ArrayList<Account> newList = new ArrayList<>(oldList); //копия
+        if (!newList.contains(newAccount)) {
+            newList.add(newAccount);
+        }
+        return newList;
     }
 
     private static Account getAuthorizedAccount(ArrayList<Account> accounts, Scanner sc) {
@@ -157,9 +198,10 @@ public class Main {
                     break;
                 }
             }
-            if (!correctAcc)
+            if (!correctAcc) {
                 System.out.println("Ошибка! Проверьте правильность ввода данных." +
                         "\nПопробуйте еще раз.\n");
+            }
         }
         return currentAccount;
     }

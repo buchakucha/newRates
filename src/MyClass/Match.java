@@ -1,28 +1,21 @@
 package MyClass;
 
-import java.util.Random;
-
 public class Match {
 
     public static void displayListOfParticipants(Participant[] participants) {
+        System.out.println("В гонке участвуют:\n");
         for (int i = 0; i < 4; i++) {
             System.out.println("№" + (i + 1) + participants[i].toString());
         }
     }
 
     public static int getNumberOfWinner() {
-        int min = 0;
-        int max = 3;
-        return new Random().nextInt((max - min) + 1) + min;
+        return Utils.getRandomInt(0, 3);
     }
 
-    public static float getCalculatedReward(int winner, int choice, float stakedMoney, float[] participantsCoefficients) {
-        float add = 0;
-        if (winner == choice) {
-            add = stakedMoney * participantsCoefficients[winner];
-            System.out.println("Поздравляю! Ваш выигрыш составил " + add + " монет");
-        } else System.out.println("К сожалению, ваша ставка не зашла:(");
-        return add;
+    public static float getCalculatedReward(float stakedMoney, //вычисление
+                                            float coefficientOfWinner) {
+        return stakedMoney * coefficientOfWinner;
     }
 }
 

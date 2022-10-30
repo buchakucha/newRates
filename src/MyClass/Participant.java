@@ -31,12 +31,11 @@ public class Participant {
 
     @Override
     public String toString() {
-        StringBuilder out = new StringBuilder();
-        out.append("\nБЕГУН: " + name +
+        return "\nБЕГУН: " + name +
                 "\nВОЗРАСТ: " + age + " лет" +
                 "\nСКОРОСТЬ: " + speed + " км/ч" +
                 "\nСИЛА: " + power + " из 10" +
-                "\nКОЭФФИЦИЕНТ: " + coefficient + "\n");
-        return out.toString();
+                "\nКОЭФФИЦИЕНТ: " + coefficient +
+                "\n";
     }
 }

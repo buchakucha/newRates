@@ -5,12 +5,13 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.InputMismatchException;
+import java.util.Random;
 
 public class Utils {
-    public static void rewriteFile(ArrayList<Account> accounts) {
+    private static final String filePath = "src/Accounts.txt";
+    public static void updateAccountInformation(ArrayList<Account> accounts) {
         try {
-            FileWriter reOut = new FileWriter("src/Accounts.txt", false);
+            FileWriter reOut = new FileWriter(filePath, false);
             for (Account account : accounts) {
                 reOut.write(account + "\n");
             }
@@ -22,7 +23,7 @@ public class Utils {
 
     public static void readFile(ArrayList<Account> accounts) {
         try {
-            BufferedReader in = new BufferedReader(new FileReader("src/Accounts.txt"));
+            BufferedReader in = new BufferedReader(new FileReader(filePath));
             String buf = in.readLine();
             if (buf == null) return;
             while (buf != null) {
@@ -39,11 +40,16 @@ public class Utils {
 
     public static void addNewAccountAtFile(String loginInput, String passwordInput) {
         try {
-            FileWriter out = new FileWriter("src/Accounts.txt", true);
+            FileWriter out = new FileWriter(filePath, true);
             out.write("\n" + loginInput + " " + passwordInput + " " + "1000");
             out.close();
         } catch (IOException e) {
             throw new RuntimeException("Какие-то пролемы с файлом", e);
         }
     }
+
+    public static int getRandomInt(int min, int max) {
+        return new Random().nextInt((max - min) + 1) + min;
+    }
 }
+

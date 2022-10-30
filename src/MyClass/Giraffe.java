@@ -2,8 +2,6 @@ package MyClass;
 
 import MyInterface.Animal;
 
-import java.util.Random;
-
 public class Giraffe implements Animal {
 
     private final String name;
@@ -24,23 +22,17 @@ public class Giraffe implements Animal {
 
 
     public int createAge() {
-        int min = 2;
-        int max = 25;
-        return new Random().nextInt((max - min) + 1) + min;
+        return Utils.getRandomInt(2, 25);
     }
 
 
     public int createSpeed() {
-        int min = 20;
-        int max = 55;
-        return new Random().nextInt((max - min) + 1) + min;
+        return Utils.getRandomInt(20, 55);
     }
 
 
     public int createPower() {
-        int min = 1;
-        int max = 10;
-        return new Random().nextInt((max - min) + 1) + min;
+        return Utils.getRandomInt(1, 10);
     }
 
     @Override

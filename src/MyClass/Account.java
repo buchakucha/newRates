@@ -5,8 +5,6 @@ public class Account {
     public String password;
     public float money;
 
-    private boolean canParticipate = false;
-
     public Account(String login, String password, float money) {
         this.login = login;
         this.password = password;
@@ -21,6 +19,10 @@ public class Account {
         return money;
     }
 
+    public void setMoney(float money) {
+        this.money = money;
+    }
+
     public boolean checkNewLogin(String loginInput) {
         if (loginInput.equals(login)) return false;
         else return true;
@@ -31,15 +33,8 @@ public class Account {
         else return false;
     }
 
-    public void placeBet(float moneyInput) {
-        canParticipate = false;
-        if ((money - moneyInput) < 0) {
-            System.out.println("На вашем счету недостаточно средств. Введите сумму не более " + getMoney());
-        } else {
-            canParticipate = true;
-            money -= moneyInput;
-            System.out.println("Отлично! На вашем счету " + getMoney() + " монет");
-        }
+    public boolean canPlaceBet(float moneyInput) {
+        return (money - moneyInput) < 0 ? false : true;
     }
 
     public void addMoney(float add) {
@@ -53,13 +48,5 @@ public class Account {
     @Override
     public String toString() {
         return login + " " + password + " " + money;
-    }
-
-    public boolean isCanParticipate() {
-        return canParticipate;
-    }
-
-    public void setCanParticipate(boolean canParticipate) {
-        this.canParticipate = canParticipate;
     }
 }

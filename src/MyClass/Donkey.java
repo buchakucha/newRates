@@ -2,8 +2,6 @@ package MyClass;
 
 import MyInterface.Animal;
 
-import java.util.Random;
-
 public class Donkey implements Animal {
     private final String name;
     private final int age;
@@ -21,21 +19,15 @@ public class Donkey implements Animal {
     }
 
     public int createAge() {
-        int min = 2;
-        int max = 25;
-        return new Random().nextInt((max - min) + 1) + min;
+        return Utils.getRandomInt(2, 25);
     }
 
     public int createSpeed() {
-        int min = 1;
-        int max = 70;
-        return new Random().nextInt((max - min) + 1) + min;
+        return Utils.getRandomInt(1, 70);
     }
 
     public int createPower() {
-        int min = 1;
-        int max = 10;
-        return new Random().nextInt((max - min) + 1) + min;
+        return Utils.getRandomInt(1, 10);
     }
 
     @Override
