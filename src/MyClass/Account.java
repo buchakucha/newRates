@@ -23,14 +23,12 @@ public class Account {
         this.money = money;
     }
 
-    public boolean checkNewLogin(String loginInput) {
-        if (loginInput.equals(login)) return false;
-        else return true;
+    public boolean isUnequalLogin(String loginInput) {
+        return !loginInput.equals(login);
     }
 
     public boolean checkLoginAndPassword(String loginInput, String passwordInput) {
-        if ((loginInput.equals(login)) && (passwordInput.equals(password))) return true;
-        else return false;
+        return (loginInput.equals(login)) && (passwordInput.equals(password));
     }
 
     public boolean canPlaceBet(float moneyInput) {

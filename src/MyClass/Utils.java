@@ -21,7 +21,7 @@ public class Utils {
         }
     }
 
-    public static void readFile(ArrayList<Account> accounts) {
+    public static void readAllAccounts(ArrayList<Account> accounts) {
         try {
             BufferedReader in = new BufferedReader(new FileReader(filePath));
             String buf = in.readLine();
